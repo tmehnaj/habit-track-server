@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const verifyFirebaseToken = async(req,res,next)=>{
+const verifyFirebaseToken= async(req,res,next)=>{
   if(!req.headers.authorization){
     return res.status(401).send({message: "unauthorized access"});
   }
