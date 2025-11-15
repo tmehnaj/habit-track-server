@@ -61,7 +61,17 @@ async function run() {
     const habitCollection = db.collection("habits");
 
     //habits related apis
-    
+        //update habit
+        app.put("/habits/:id",verifyFirebaseToken,async(req,res)=>{
+          const id = req.params.id;
+          const updateHabit = req.body;
+          const query = { _id: new ObjectId(id)};
+          const update = {
+            $set: updateHabit,
+          }
+          const result = await habitCollection.updateOne(query,update);
+          res.send(result);
+        })
        //get habits for certain user
     app.get("/myHabits",verifyFirebaseToken,async(req,res)=>{
 
