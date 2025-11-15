@@ -4,7 +4,7 @@ dotenv.config();
 const express = require('express');
 const cors = require('cors');
 const admin = require("firebase-admin");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -22,7 +22,7 @@ const verifyFirebaseToken= async(req,res,next)=>{
     return res.status(401).send({message: "unauthorized access"});
   }
   const token = req.headers.authorization.split(" ")[1];
-  console.log('token',token);
+  //  console.log('token',token);
   if(!token){
     return res.status(401).send({message: "unauthorized access"});
   }
@@ -30,7 +30,6 @@ const verifyFirebaseToken= async(req,res,next)=>{
   try{
     const decoded = await admin.auth().verifyIdToken(token);
     req.token_email = decoded.email;
-    console.log('from try in verify function')
     next();
   }catch(err){
     return res.status(401).send({message: "unauthorized access"});
@@ -50,7 +49,7 @@ const client = new MongoClient(uri, {
 
 
 app.get('/',(req,res)=>{
-    res.send('I am the server.');
+    res.send('I am the habit track server.');
 })
 
 
@@ -63,6 +62,22 @@ async function run() {
 
     //habits related apis
     
+       //get habits for certain user
+    app.get("/myHabits",verifyFirebaseToken,async(req,res)=>{
+
+      const reqEmail = req.query.email;
+      const query = {};
+      if(reqEmail){
+        query.email = reqEmail;
+      }
+      //verify if the user using others gmail/token
+      if(reqEmail !== req.token_email){
+        res.status(403).send({message: "forbidden access"});
+      }
+      const cursor = habitCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
     //get all habits
     app.get("/habits",async(req,res)=>{
       const cursor = habitCollection.find();
@@ -75,6 +90,14 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     })
+    //get habit by id
+    app.get("/habits/:id",verifyFirebaseToken,async(req,res)=>{
+       const id = req.params.id;
+      const query = { _id: new ObjectId(id)};
+      const result = await habitCollection.findOne(query);
+      res.send(result);    
+    })
+ 
     // post habit
     app.post("/habits",verifyFirebaseToken,async(req,res)=>{
       const newHabit = req.body;
