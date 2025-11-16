@@ -60,6 +60,13 @@ async function run() {
     const db = client.db("habit_tracker");
     const habitCollection = db.collection("habits");
 
+
+    //search related apis
+     app.get("/search", async(req, res) => {
+      const search_text = req.query.search;
+      const result = await habitCollection.find({title: {$regex: search_text, $options: "i"}}).toArray();
+      res.send(result);
+    })
     //habits related apis
 
     //complete habit
@@ -72,7 +79,7 @@ async function run() {
       }
 
       const today = new Date().toDateString();
-        const habitHistory = habit.completionHistory || [];
+        const habitHistory = habit.completionHistory ?? [];
 
       const alreadyCompleted = habitHistory.find(date=> new Date(date).toDateString() === today);
 
@@ -147,6 +154,14 @@ async function run() {
       // }
       const result = await habitCollection.insertOne(newHabit);
       res.send(result);
+    })
+
+      //delete
+    app.delete("/habits/:id",verifyFirebaseToken,async(req,res)=>{
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id)};
+        const result = await habitCollection.deleteOne(query);
+        res.send(result);
     })
 
     // Send a ping to confirm a successful connection
