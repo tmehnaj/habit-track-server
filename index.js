@@ -61,6 +61,35 @@ async function run() {
     const habitCollection = db.collection("habits");
 
     //habits related apis
+
+    //complete habit
+    app.patch("/habits/complete/:id",verifyFirebaseToken,async(req,res)=>{
+      const id=req.params.id;
+      const query = { _id: new ObjectId(id)};
+      const habit = await habitCollection.findOne(query);
+      if(!habit){
+        return res.status(404).send({ message: "Habit not found" });
+      }
+
+      const today = new Date().toDateString();
+        const habitHistory = habit.completionHistory || [];
+
+      const alreadyCompleted = habitHistory.find(date=> new Date(date).toDateString() === today);
+
+      if(alreadyCompleted){
+        return res.send({ message: "Already Today's Habit Completed." });
+      }
+      const update = {
+        $push: {
+          completionHistory: new Date(),
+        }
+      }
+
+      const result = await habitCollection.updateOne(query,update);
+      res.send(result);
+
+
+    })
         //update habit
         app.put("/habits/:id",verifyFirebaseToken,async(req,res)=>{
           const id = req.params.id;
