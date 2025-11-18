@@ -67,6 +67,12 @@ async function run() {
       const result = await habitCollection.find({ title: { $regex: search_text, $options: "i" } }).toArray();
       res.send(result);
     })
+
+    // app.get("/category", async(req,res)=>{
+    //   const categoryText = req.query.category;
+    //   const result = await habitCollection.find({category: categoryText}).toArray();
+    //   res.send(result);
+    // })
     //habits related apis
 
     //complete habit
@@ -78,10 +84,7 @@ async function run() {
         return res.status(404).send({ message: "Habit not found" });
       }
 ///check email
-   const reqEmail = req.query.email;
-      if (reqEmail !== req.token_email) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
+ 
 
 
 
@@ -177,7 +180,7 @@ async function run() {
     // post habit
     app.post("/habits", verifyFirebaseToken, async (req, res) => {
       const newHabit = req.body;
-      console.log('from post habit')
+      //console.log('from post habit')
       // const email = req.body.email;
       // if(email !== req.token_email){
       //   res.status(403).send({message: "forbidden access"});
